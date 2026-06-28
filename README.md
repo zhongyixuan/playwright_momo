@@ -10,7 +10,8 @@ Playwright + pytest test suite for the [momo shopping site](https://www.momoshop
 2. [Setup](#setup)
 3. [Running the Tests](#running-the-tests)
 4. [Test Strategy](#test-strategy)
-5. [Design Decisions](#design-decisions)
+5. [Known Issues](#known-issues)
+6. [Design Decisions](#design-decisions)
 
 ---
 
@@ -22,13 +23,14 @@ playwright_momo/
 │
 ├── pages/                          # Page Object Model
 │   ├── base_page.py                # Shared navigation / interaction helpers
-│   └── search_page.py             # All search-feature selectors & actions
+│   └── search_page.py              # All search-feature selectors & actions
 │
 ├── utils/
 │   └── helpers.py                  # Pure helper functions (relevance checks, price parsing)
 │
 └── tests/
     ├── test_search_core.py         # Smoke: basic happy-path scenarios
+    ├── test_search_edge_cases.py   # Edge: empty, special chars, very long input, XSS
 ```
 
 ---
@@ -99,6 +101,20 @@ The search feature is the **primary discovery mechanism** on an e-commerce platf
 | File | Category | Key scenarios |
 |---|---|---|
 | `test_search_core.py` | Smoke / Happy-path | Returns Enter results, Return Button results, URL updates, relevance, consecutive searches |
+| `test_search_edge_cases.py` | Edge / Boundary | Empty query, whitespace, numbers, nonsense query, 200-char input, XSS payload |
+
+---
+
+## Known Issues
+
+The following bugs were discovered during test execution and are tracked as `xfail` — they are **expected to fail** until fixed by the momo engineering team.
+
+| Test | Status | Bug Description |
+|---|---|---|
+| `test_very_long_keyword` | `XFAIL` | Submitting a query of 200+ characters returns a blank page title, indicating the server does not handle oversized input gracefully. |
+| `test_special_characters_search` | `XFAIL` | Submitting a query containing `<script>` tags returns a blank page title, indicating special characters are not properly sanitized before being processed. |
+
+These tests are marked with `@pytest.mark.xfail(strict=True)`. If momo resolves these issues and the tests begin passing, pytest will report them as `XPASS` as a signal to remove the marker.
 
 ---
 
@@ -112,7 +128,7 @@ All selectors live in `pages/search_page.py`. Tests never use raw CSS or XPath s
 
 ### Lenient relevance threshold
 
-The relevance test uses a 40–50 % threshold rather than 100%. momo shows sponsored listings, category cross-sells, and bundled products alongside direct matches. A 100% threshold would produce false failures; 40–50% still catches a completely broken relevance algorithm.
+The relevance test uses a 40–50% threshold rather than 100%. momo shows sponsored listings, category cross-sells, and bundled products alongside direct matches. A 100% threshold would produce false failures; 40–50% still catches a completely broken relevance algorithm.
 
 ### No `time.sleep()`
 

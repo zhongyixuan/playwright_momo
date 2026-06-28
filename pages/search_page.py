@@ -42,10 +42,8 @@ class SearchPage(BasePage):
     ]
 
     NO_RESULT_CANDIDATES = [
-        ".searchNoResult",
-        ".noresult",
-        "[class*='noResult']",
-        "[class*='no-result']",
+        ".noSearchResultWrapper"
+        "[class*='noSearchResult']",
     ]
 
     def __init__(self, page: Page) -> None:
@@ -164,6 +162,12 @@ class SearchPage(BasePage):
         items = self.page.locator(selector)
         count = items.count()
         return [items.nth(i).inner_text().strip() for i in range(count)]
+
+    def has_no_results(self) -> bool:
+        for selector in self.NO_RESULT_CANDIDATES:
+            if self.page.locator(selector).is_visible():
+                return True
+        return False
 
     # Private helpers
 
