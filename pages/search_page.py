@@ -46,6 +46,13 @@ class SearchPage(BasePage):
         "[class*='noSearchResult']",
     ]
 
+    # Sorting and Filter
+    SORT_OPTIONS = "#searchType li, ul.menuSearchType li"
+
+    PRICE_FILTER_MIN = "#priceS"
+    PRICE_FILTER_MAX = "#priceE"
+    PRICE_FILTER_BTN = "a.priceBtn"
+
     def __init__(self, page: Page) -> None:
         super().__init__(page)
         self._search_input_selector: Optional[str] = None
@@ -162,6 +169,66 @@ class SearchPage(BasePage):
             )
         except Exception:
             pass
+
+    # Sorting and Filter
+
+    def sort_by(self, label: str) -> None:
+        """
+        Click the sort option whose text matches label.
+        Supported: '綜合', '月銷量', '新上市', '價格', '評價'
+        Waits for the clicked option to become 'selected' before returning.
+        """
+        original_url = self.page.url
+        current_selected_idx = self.page.evaluate(
+            "() => [...document.querySelectorAll('#searchType li')]"
+            ".findIndex(li => li.className.includes('selected'))"
+        )
+
+        options = self.page.locator(self.SORT_OPTIONS)
+        count = options.count()
+        for i in range(count):
+            opt = options.nth(i)
+            if label.strip() in opt.inner_text().strip():
+                opt.click()
+
+                # Wait for URL change
+                try:
+                    self.page.wait_for_function(
+                        f"() => window.location.href !== {repr(original_url)}",
+                        timeout=8_000,
+                    )
+                except Exception:
+                    pass
+
+                # Wait for the clicked option to get 'selected' class
+                try:
+                    self.page.wait_for_function(
+                        f"() => {{"
+                        f"  const items = document.querySelectorAll('#searchType li');"
+                        f"  return !items[{current_selected_idx}]?.className?.includes('selected')"
+                        f"      && items[{i}]?.className?.includes('selected');"
+                        f"}}",
+                        timeout=8_000,
+                    )
+                except Exception:
+                    pass
+
+                self._wait_for_results()
+                return
+
+        available = [options.nth(i).inner_text().strip() for i in range(count)]
+        raise ValueError(f"Sort option '{label}' not found. Available: {available}")
+
+    def filter_by_price(self, min_price: int, max_price: int) -> None:
+        original_url = self.page.url
+        self.safe_fill(self.PRICE_FILTER_MIN, str(min_price))
+        self.safe_fill(self.PRICE_FILTER_MAX, str(max_price))
+        self.safe_click(self.PRICE_FILTER_BTN)
+        self.page.wait_for_function(
+            f"() => window.location.href !== {repr(original_url)}",
+            timeout=10_000,
+        )
+        self._wait_for_results()
 
     # Result inspection
 

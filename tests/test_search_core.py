@@ -3,7 +3,6 @@ Core / smoke tests for momo search.
 """
 
 import pytest
-from playwright.sync_api import expect
 
 from pages.search_page import SearchPage
 from utils.helpers import majority_contain_keyword

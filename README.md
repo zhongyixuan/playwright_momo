@@ -32,6 +32,7 @@ playwright_momo/
     ├── test_search_core.py         # Smoke: basic happy-path scenarios
     ├── test_search_edge_cases.py   # Edge: empty, special chars, very long input, XSS
     ├── test_search_autocomplete.py # Autocomplete dropdown behaviour
+    ├── test_search_filters.py      # Sorting and price-filter functionality
 ```
 
 ---
@@ -54,7 +55,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # 3. Install Python dependencies
-pip install playwright pytest pytest-playwright
+pip install playwright pytest pytest-playwright pytest-html
 
 # 4. Install Playwright browsers
 playwright install
@@ -88,6 +89,12 @@ pytest tests/test_search_core.py::TestSearchHappyPath::test_consecutive_searches
 pytest --headed
 ```
 
+### Run with report output
+
+```bash
+pytest --html=reports/report.html --headed
+```
+
 ---
 
 ## Test Strategy
@@ -107,6 +114,7 @@ The search feature is the **primary discovery mechanism** on an e-commerce platf
 | `test_search_core.py` | Smoke / Happy-path | Returns Enter results, Return Button results, URL updates, relevance, consecutive searches |
 | `test_search_edge_cases.py` | Edge / Boundary | Empty query, whitespace, numbers, nonsense query, 200-char input, XSS payload |
 | `test_search_autocomplete.py` | Autocomplete | `aria-expanded` signals dropdown open, autocomplete API is triggered, API response contains the keyword |
+| `test_search_filters.py` | Sorting & Filters | Sort changes full result order (not just first item), URL reflects sort state, price filter reduces result set, URL contains `_advPriceS`/`_advPriceE` params |
 
 ---
 
@@ -147,3 +155,37 @@ momo's autocomplete dropdown is rendered outside the standard DOM (via MUI porta
 2. **Network interception** — Playwright listens to all HTTP responses and captures any that match autocomplete-related URL patterns (`suggest`, `recommend`, etc.), verifying the feature is active at the API level.
 
 DOM-based tests were intentionally excluded to avoid false negatives caused by the non-standard rendering.
+
+### Graceful skipping over missing UI
+
+momo is a live site. Some UI elements (price filter, sort options) may not be present on every search or every page variant. Instead of failing on `ElementNotFound`, tests call `pytest.skip()` with a reason when optional UI is absent. This keeps the suite **stable** without hiding genuine failures.
+
+### URL-change waiting pattern
+
+Actions that trigger navigation (search, sort, price filter) all follow the same pattern before asserting state:
+
+```python
+self.page.wait_for_function(
+    f"() => window.location.href !== {repr(original_url)}",
+    timeout=10_000,
+)
+```
+
+This prevents race conditions on momo's SPA where the URL updates asynchronously after a click.
+
+### Selector discovery
+
+All selectors were verified against the live momo site. Key findings:
+
+| Element | Selector |
+|---|---|
+| Search input (homepage) | `input[name='search-input']` |
+| Search input (result page) | `#header-search-input` |
+| Search button | `[data-testid='header-search-button']` |
+| Product card | `li.goodsUrl` |
+| Sort options | `#searchType li` |
+| Price filter min | `#priceS` |
+| Price filter max | `#priceE` |
+| Price filter button | `a.priceBtn` |
+| No results | `.noSearchResultWrapper` |
+| Price URL params | `_advPriceS`, `_advPriceE` |
