@@ -20,6 +20,7 @@ Playwright + pytest test suite for the [momo shopping site](https://www.momoshop
 ```
 playwright_momo/
 ├── conftest.py                     # Shared pytest fixtures (browser, page, search_page)
+├── pytest.ini                      # Pytest configuration & markers
 │
 ├── pages/                          # Page Object Model
 │   ├── base_page.py                # Shared navigation / interaction helpers
@@ -69,6 +70,12 @@ playwright install
 
 ```bash
 pytest
+```
+
+### Run only smoke tests (fastest feedback)
+
+```bash
+pytest -m smoke
 ```
 
 ### Run a specific test file

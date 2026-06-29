@@ -3,7 +3,6 @@ Shared test utils, pure finctions.
 """
 
 from __future__ import annotations
-import re
 from typing import List
 
 def majority_contain_keyword(names: List[str], keyword: str, threshold: float = 0.5) -> bool:

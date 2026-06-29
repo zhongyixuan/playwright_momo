@@ -6,6 +6,7 @@ import pytest
 
 from pages.search_page import SearchPage
 
+@pytest.mark.filter
 class TestSearchSortingAndFilter:
 
     def test_sort_updates_results_and_url(self, search_page: SearchPage):
@@ -19,6 +20,7 @@ class TestSearchSortingAndFilter:
         original_url = search_page.current_url
 
         try:
+            search_page.page.wait_for_load_state("networkidle", timeout=10_000)
             search_page.sort_by("價格")
         except ValueError:
             pytest.skip("Price sort option not found on this results page")
@@ -39,6 +41,7 @@ class TestSearchSortingAndFilter:
         search_page.search("airPods")
 
         try:
+            search_page.page.wait_for_load_state("networkidle", timeout=10_000)
             search_page.sort_by("評價")
         except ValueError:
             pytest.skip("評價 sort not found")
@@ -69,6 +72,7 @@ class TestSearchSortingAndFilter:
         assert unfiltered_count > 0
 
         try:
+            search_page.page.wait_for_load_state("networkidle", timeout=10_000)
             search_page.filter_by_price(1000, 5000)
         except Exception:
             pytest.skip("Price filter UI not found or not interactable")
@@ -86,6 +90,7 @@ class TestSearchSortingAndFilter:
         """
         search_page.search("Camera")
         try:
+            search_page.page.wait_for_load_state("networkidle", timeout=10_000)
             search_page.filter_by_price(10000, 30000)
         except Exception:
             pytest.skip("Price filter UI not found or not interactable")

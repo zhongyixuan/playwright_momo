@@ -1,5 +1,5 @@
 import pytest
-from playwright.sync_api import sync_playwright, Page, Browser, BrowserContext
+from playwright.sync_api import Page, Browser, BrowserContext
 from pages.search_page import SearchPage
 
 # Browser / context fixtures

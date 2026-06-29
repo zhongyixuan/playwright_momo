@@ -6,6 +6,8 @@ import pytest
 
 from pages.search_page import SearchPage
 
+@pytest.mark.edge
+@pytest.mark.search
 class TestSearchEdgeCases:
 
     def test_empty_search_does_not_crash(self, search_page: SearchPage):

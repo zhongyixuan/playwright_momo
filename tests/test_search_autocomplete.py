@@ -6,6 +6,7 @@ import pytest
 
 from pages.search_page import SearchPage
 
+@pytest.mark.search
 class TestSearchAutocomplete:
 
     def _is_autocomplete_expanded(self, search_page: SearchPage) -> bool:

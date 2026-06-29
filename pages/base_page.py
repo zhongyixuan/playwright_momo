@@ -1,4 +1,4 @@
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Page
 
 class BasePage:
     """
@@ -11,7 +11,6 @@ class BasePage:
         self.page = page
 
     # Navigation
-
     def goto(self, path: str = "") -> None:
         url = (self.BASE_URL if not path else path).rstrip("/")
         self.page.goto(url, wait_until="networkidle", timeout=30_000)
@@ -23,16 +22,6 @@ class BasePage:
     @property
     def title(self) -> str:
         return self.page.title
-    
-    # Waiting helpers
-
-    def wait_for_network_idle(self, timeout: int=10_000):
-        self.page.wait_for_load_state("networkidle", timeout=timeout)
-
-    def wait_for_selector(self, selector: str, timeout: int = 10_000) -> Locator:
-        locator = self.page.locator(selector)
-        locator.wait_for(state="visible", timeout=timeout)
-        return locator
     
     # Safe Interactions
     def safe_click(self, selector: str, timeout: int = 10_000):

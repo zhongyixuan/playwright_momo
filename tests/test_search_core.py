@@ -7,6 +7,8 @@ import pytest
 from pages.search_page import SearchPage
 from utils.helpers import majority_contain_keyword
 
+@pytest.mark.smoke
+@pytest.mark.search
 class TestSearchHappyPath:
 
     def test_search_returns_results(self, search_page: SearchPage):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, Optional
 
-from playwright.sync_api import Page, Locator, expect
+from playwright.sync_api import Page, Locator
 
 from pages.base_page import BasePage
 
@@ -184,6 +184,9 @@ class SearchPage(BasePage):
             ".findIndex(li => li.className.includes('selected'))"
         )
 
+        self.page.locator(self.SORT_OPTIONS).first.wait_for(
+            state="visible", timeout=10_000
+        )
         options = self.page.locator(self.SORT_OPTIONS)
         count = options.count()
         for i in range(count):
