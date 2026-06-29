@@ -13,8 +13,8 @@ class SearchPage(BasePage):
     """
     # Search bar
     SEARCH_INPUT_CANDIDATES = [
-        "#header-search-input",
         "input[name='search-input']",
+        "#header-search-input",
         "input[name*='search']",
         "input[placeholder*='搜尋']",
     ]
@@ -146,6 +146,22 @@ class SearchPage(BasePage):
             timeout=10_000,
         )
         self._wait_for_results()
+
+    # Autocomplete
+
+    def type_keyword(self, keyword: str) -> None:
+        input = self._get_search_input()
+        input.click()
+        input.fill(keyword)
+        # Wait for autocomplete to expand
+        try:
+            self.page.wait_for_function(
+                "() => document.querySelector('#header-search-input, input[name=\"search-input\"]')"
+                "?.getAttribute('aria-expanded') === 'true'",
+                timeout=5_000,
+            )
+        except Exception:
+            pass
 
     # Result inspection
 

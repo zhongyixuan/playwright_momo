@@ -26,11 +26,12 @@ playwright_momo/
 │   └── search_page.py              # All search-feature selectors & actions
 │
 ├── utils/
-│   └── helpers.py                  # Pure helper functions (relevance checks, price parsing)
+│   └── helpers.py                  # Pure helper functions (relevance checks)
 │
 └── tests/
     ├── test_search_core.py         # Smoke: basic happy-path scenarios
     ├── test_search_edge_cases.py   # Edge: empty, special chars, very long input, XSS
+    ├── test_search_autocomplete.py # Autocomplete dropdown behaviour
 ```
 
 ---
@@ -51,6 +52,9 @@ cd playwright_momo
 # 2. (Recommended) create a virtual environment
 python -m venv .venv
 source .venv/bin/activate
+
+# 3. Install Python dependencies
+pip install playwright pytest pytest-playwright
 
 # 4. Install Playwright browsers
 playwright install
@@ -102,6 +106,7 @@ The search feature is the **primary discovery mechanism** on an e-commerce platf
 |---|---|---|
 | `test_search_core.py` | Smoke / Happy-path | Returns Enter results, Return Button results, URL updates, relevance, consecutive searches |
 | `test_search_edge_cases.py` | Edge / Boundary | Empty query, whitespace, numbers, nonsense query, 200-char input, XSS payload |
+| `test_search_autocomplete.py` | Autocomplete | `aria-expanded` signals dropdown open, autocomplete API is triggered, API response contains the keyword |
 
 ---
 
@@ -133,3 +138,12 @@ The relevance test uses a 40–50% threshold rather than 100%. momo shows sponso
 ### No `time.sleep()`
 
 All waiting is done via Playwright's built-in `wait_for_selector` / `wait_for_load_state`. This avoids arbitrary delays and keeps the suite as fast as the site allows.
+
+### Autocomplete testing strategy
+
+momo's autocomplete dropdown is rendered outside the standard DOM (via MUI portal), so CSS selectors cannot reliably locate it. Two alternative strategies are used instead:
+
+1. **`aria-expanded` attribute** — the search input toggles `aria-expanded="true"` when the dropdown opens, providing a stable signal without touching the DOM.
+2. **Network interception** — Playwright listens to all HTTP responses and captures any that match autocomplete-related URL patterns (`suggest`, `recommend`, etc.), verifying the feature is active at the API level.
+
+DOM-based tests were intentionally excluded to avoid false negatives caused by the non-standard rendering.
