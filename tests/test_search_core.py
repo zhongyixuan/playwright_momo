@@ -44,7 +44,7 @@ class TestSearchHappyPath:
         """
         Given a search for 'iPhone'
         When the results page loads
-        Then at least 50 % of visible product names contain a related term.
+        Then at least 40% of visible product names contain a related term.
         """
         keyword = "iPhone"
         search_page.search(keyword)

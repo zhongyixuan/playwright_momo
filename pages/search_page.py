@@ -58,7 +58,7 @@ class SearchPage(BasePage):
         self._search_input_selector: Optional[str] = None
         self._result_item_selector: Optional[str] = None
         self._result_name_selector: Optional[str] = None
-    
+
     """Try each selector; return the first one that finds a visible element."""
     def _resolve(self, candidates: List[str], timeout: int = 5_000) -> Optional[str]:
         for selector in candidates:
