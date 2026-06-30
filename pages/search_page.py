@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import List, Optional
 
 from playwright.sync_api import Page, Locator
@@ -148,6 +147,7 @@ class SearchPage(BasePage):
         input.fill("")
         input.fill(keyword)
         self.page.keyboard.press("Enter")
+        # Results may already exist on page; wait for URL change to confirm
         self.page.wait_for_function(
             f"() => window.location.href !== {repr(old_url)}",
             timeout=10_000,
