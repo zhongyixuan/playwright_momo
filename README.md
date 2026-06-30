@@ -60,6 +60,9 @@ pip install playwright pytest pytest-playwright pytest-html
 
 # 4. Install Playwright browsers
 playwright install
+
+# 5. Create a report folder (if exists, ignore)
+mkdir -p reports
 ```
 
 ---
@@ -81,7 +84,7 @@ pytest -m smoke
 ### Run a specific test file
 
 ```bash
-pytest tests/test_search_core.py -v
+pytest tests/test_search_core.py
 ```
 
 ### Run a specific test case
@@ -96,10 +99,10 @@ pytest tests/test_search_core.py::TestSearchHappyPath::test_consecutive_searches
 pytest --headed
 ```
 
-### Run with report output
+### Run by keyword
 
 ```bash
-pytest --html=reports/report.html --headed
+pytest -k "test_search_returns_results"
 ```
 
 ---
